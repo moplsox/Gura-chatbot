@@ -1,0 +1,56 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Node ---
+node_modules/
+frontend/dist/
+frontend/.vite/
+*.log
+npm-debug.log*
+
+# --- Env / secrets ---
+.env
+.env.local
+.env.*.local
+
+# --- Large model files (never commit) ---
+models/**
+!models/README.md
+!models/live2d/.gitkeep
+!models/svc/.gitkeep
+*.pth
+*.pt
+*.ckpt
+*.safetensors
+*.onnx
+*.bin
+
+# --- Live2D runtime assets downloaded by scripts (licensed, not redistributed) ---
+frontend/public/live2d/core/*
+!frontend/public/live2d/core/.gitkeep
+frontend/public/live2d/models/*
+!frontend/public/live2d/models/.gitkeep
+
+# --- Runtime ---
+.run/
+*.pid
+backend/cache/
+svc_service/cache/
+hubert/
+pretrain/
+
+# --- OS / IDE ---
+.DS_Store
+.idea/
+.vscode/
+
+# --- test artifacts ---
+frontend/tests/screenshot-*.png
+frontend/tsconfig.tsbuildinfo
