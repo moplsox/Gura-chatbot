@@ -25,9 +25,9 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     # LLM
-    llm_provider: str = "mock"  # openai_compatible | anthropic | mock
+    llm_provider: str = "anthropic"  # anthropic | openai_compatible | mock
     llm_api_key: str = ""
-    llm_model: str = "gpt-4o-mini"
+    llm_model: str = "claude-opus-5-5"
     llm_base_url: str = "https://api.openai.com/v1"
     llm_timeout_seconds: float = 45.0
     llm_max_history_turns: int = 12

@@ -24,7 +24,8 @@ async def health(request: Request) -> dict:
         "ffmpeg": shutil.which("ffmpeg") is not None,
         "providers": {
             "llm": {"provider": s.llm_provider, "model": s.llm_model,
-                     "configured": s.llm_provider == "mock" or bool(s.llm_api_key)
+                     "active": getattr(getattr(services, "chat", None), "provider", None).name if services else None,
+                     "configured": s.llm_provider == "mock" or bool(s.llm_api_key and s.llm_api_key != "sk-ant-...")
                      or s.llm_base_url.startswith("http://")},
             "stt": {"provider": s.stt_provider, "model": s.stt_model,
                      "ready": bool(services and services.stt and services.stt.available)},

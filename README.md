@@ -11,7 +11,7 @@ iPhone Safari over the local network.
 > |---|---|
 > | Frontend / backend / health API / chat UI | ✅ running, e2e-tested |
 > | Live2D load, blink, idle, expressions, motions, lip sync | ✅ tested with Live2D's official sample model (Haru) |
-> | LLM providers (OpenAI-compatible, Anthropic, offline mock) + structured emotion output | ✅ unit-tested; real API needs your key |
+> | LLM providers (Claude via Anthropic SDK — default, OpenAI-compatible, offline mock) + structured emotion output | ✅ unit-tested; real API needs your key |
 > | STT (faster-whisper) | ✅ code + error paths tested; model download needs internet (Hugging Face) |
 > | TTS (edge-tts, OpenAI-compatible) | ✅ pipeline tested with fakes; edge-tts needs internet (worked offline-blocked in CI) |
 > | So-VITS-SVC voice conversion | 🟡 service + fallback implemented; **your `.pth` + `config.json` were not available**, so inference is unverified |
@@ -19,7 +19,9 @@ iPhone Safari over the local network.
 
 ---
 
-## 1. Quick start (macOS)
+## 1. Quick start
+
+### macOS / Linux
 
 Prereqs: Python ≥ 3.11 (`brew install python@3.12`), Node ≥ 20 (`brew install node`), `ffmpeg`
 (`brew install ffmpeg`, needed to decode browser microphone audio), optionally `uv` (`brew install uv`).
@@ -27,10 +29,23 @@ Prereqs: Python ≥ 3.11 (`brew install python@3.12`), Node ≥ 20 (`brew instal
 ```bash
 git clone <this repo> && cd Gura-chatbot
 scripts/setup.sh            # venv + pip, npm install, downloads Live2D Cubism Core + sample model, creates .env
-# edit .env → set LLM_PROVIDER / LLM_API_KEY / LLM_MODEL (see §3)
+# edit .env → LLM_API_KEY=sk-ant-...   (Claude is the default LLM; see §3)
 scripts/dev.sh start        # starts backend :8000 and frontend :5173 in the background
 open http://localhost:5173
 scripts/dev.sh stop         # stop both  (also: status | logs | restart)
+```
+
+### Windows 10/11 (PowerShell)
+
+Prereqs: [Python 3.11/3.12](https://www.python.org/downloads/) (tick *Add to PATH*), [Node.js LTS](https://nodejs.org/),
+`winget install Gyan.FFmpeg`.
+
+```powershell
+git clone <this repo>; cd Gura-chatbot
+powershell -ExecutionPolicy Bypass -File scripts\setup.ps1     # venv, npm install, Cubism Core + sample model, .env
+notepad .env                                                 # LLM_API_KEY=sk-ant-...
+powershell -ExecutionPolicy Bypass -File scripts\dev.ps1 start  # backend :8000 + frontend :5173
+#  ...\dev.ps1 stop | status | logs
 ```
 
 On an iPhone on the same Wi-Fi: open `http://<your-mac-ip>:5173`. Tap the screen once to unlock audio
@@ -41,6 +56,10 @@ or Tailscale) or trust a local HTTPS cert.
 ## 2. What you need to provide
 
 ### 2.1 Gura Live2D model (required for Gura; Haru sample works meanwhile)
+
+There is no legally downloadable Gura Live2D model online: the official model belongs to COVER Corp.
+and is not distributed, and the few fan-made ones found were 3D (not Live2D) or had been taken down.
+Use a model you own/licensed (e.g. your own files in a local folder).
 
 Put the complete export folder in `frontend/public/live2d/models/Gura/` and set
 `LIVE2D_MODEL_URL=/live2d/models/Gura/Gura.model3.json` (or pick it in **Settings → Live2D → Load**).
@@ -74,17 +93,20 @@ maps emotions onto whatever exists; unknown parameters are ignored, never crash.
    `X-Latency-Ms`. On Apple Silicon the service uses MPS when available, else CPU. If conversion fails or
    times out the app **falls back to the plain TTS voice** (`VC_FALLBACK_TO_TTS=true`).
 
-### 2.3 LLM API key
+### 2.3 LLM API key (Claude by default)
 
-See §3. Without a key the backend runs an offline **mock** persona so the whole UI/voice/Live2D flow
-can be exercised.
+Create a key at <https://console.anthropic.com> and put it in `.env` as `LLM_API_KEY`. The default model
+is `claude-opus-5-5`; switch to `claude-sonnet-5-5` or `claude-haiku-5-5` in `LLM_MODEL` for lower
+cost/latency. Without a key the backend logs a warning and runs the offline **mock** persona so the
+UI/voice/Live2D flow still works.
 
 ## 3. Configuration (`.env`)
 
 | Variable | Meaning |
 |---|---|
-| `LLM_PROVIDER` | `openai_compatible` (OpenAI, OpenRouter, DeepSeek, Groq, Ollama, LM Studio…), `anthropic`, or `mock` |
-| `LLM_API_KEY`, `LLM_MODEL`, `LLM_BASE_URL` | credentials/endpoint; e.g. Ollama: `http://localhost:11434/v1`, model `llama3.1` |
+| `LLM_PROVIDER` | `anthropic` (Claude, default), `openai_compatible` (OpenAI, OpenRouter, DeepSeek, Groq, Ollama, LM Studio…), or `mock` |
+| `LLM_API_KEY`, `LLM_MODEL` | Claude: `sk-ant-…` + `claude-opus-5-5` / `claude-sonnet-5-5` / `claude-haiku-5-5` |
+| `LLM_BASE_URL` | only for `openai_compatible`; e.g. Ollama: `http://localhost:11434/v1`, model `llama3.1` |
 | `LLM_TIMEOUT_SECONDS`, `LLM_MAX_HISTORY_TURNS`, `LLM_TEMPERATURE` | request timeout, context window (turns), creativity |
 | `STT_PROVIDER` / `STT_MODEL` / `STT_DEVICE` / `STT_COMPUTE_TYPE` | `faster_whisper` with `tiny…large-v3`; Mac → `cpu` + `int8` |
 | `TTS_PROVIDER` | `edge` (free Microsoft neural voices), `openai_compatible`, `disabled` |
